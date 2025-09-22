@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Script de sauvegarde automatique de fichiers et dossiers.
 
@@ -9,16 +9,15 @@
       - Copier les fichiers dans ce dossier
       - Générer un rapport CSV contenant les métadonnées (nom, taille, date, chemin source)
 
-.PARAMETER sourcePaths
+.PARAMETER Source
     Chemins des fichiers ou dossiers à sauvegarder (séparés par des virgules).
 
-.PARAMETER destRoot
+.PARAMETER Destination
     Chemin du répertoire racine où sera créé le dossier de sauvegarde.
 
 .EXAMPLE
-    PS> .\autoSave.ps1
-    Entrez les chemins des dossiers/fichiers à sauvegarder (séparés par des virgules): C:\Users\Kanem\Documents,C:\Users\Kanem\Pictures
-    Entrez le chemin du dossier de sauvegarde (ex: D:\Backups): D:\Sauvegardes
+    PS> .\autoSave.ps1 -Source  "C:\Users\Bob\Documents", "C:\Users\Alice\Pictures" -Destination "D:\Backups"
+    
 
     → Crée un dossier D:\Sauvegardes\Backup_2025-09-21_1412
     → Copie les fichiers dedans
@@ -26,23 +25,21 @@
 
 .NOTES
     Auteur  : Kanem227
-    Version : 1.0
+    Version : 1.1
     Date    : 21/09/2025
 #>
 
+param (
+    [parameter(Mandatory=$true)]
+    [string[]]$Source,
 
-# -----------------------------
-# VARIABLES
-# -----------------------------
-$sourcePaths = Read-Host "Entrez les chemins des dossiers/fichiers à sauvegarder (séparés par des virgules)"
-$destRoot = Read-Host "Entrez le chemin du dossier de sauvegarde (ex: D:\Backups)"
-
-# Conversion en tableau
-$paths = $sourcePaths -split ',' | ForEach-Object { $_.Trim() }
+   [parameter(Mandatory=$true)]
+    [string[]]$Destination 
+)
 
 # Créer un dossier de sauvegarde daté
 $date = Get-Date -Format "yyyy-MM-dd_HHmm"
-$backupDir = Join-Path $destRoot "Backup_$date"
+$backupDir = Join-Path $Destination "Backup_$date"
 New-Item -Path $backupDir -ItemType Directory -Force | Out-Null
 
 Write-Output "📂 Sauvegarde en cours vers : $backupDir"
@@ -52,7 +49,7 @@ Write-Output "📂 Sauvegarde en cours vers : $backupDir"
 # -----------------------------
 $report = @()
 
-foreach ($p in $paths) {
+foreach ($p in $Source) {
     if (Test-Path $p) {
         Copy-Item -Path $p -Destination $backupDir -Recurse -Force
         $files = Get-ChildItem $p -Recurse -File
